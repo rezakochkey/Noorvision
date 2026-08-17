@@ -6,7 +6,7 @@ from .actions import ActionResult, execute_action
 from .agent import AgentStep, NoorvisionAgent
 from .experiment import Experiment
 from .experiment_runner import run_experiment
-from .learning import record_result
+from .learning import remember_result
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,7 +28,7 @@ def run_cycle(agent: NoorvisionAgent) -> CycleResult:
             success_criteria="A local experiment result is produced and stored as memory.",
         )
         result = run_experiment(experiment)
-        memory = record_result(experiment, result)
+        memory = remember_result(experiment, result)
         agent.memory_store.add(memory)
 
     return CycleResult(step=step, action_result=action_result)
