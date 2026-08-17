@@ -1,6 +1,6 @@
 """Experiment primitives for Noorvision's learning loop."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
 
@@ -10,7 +10,7 @@ class Experiment:
 
     hypothesis: str
     success_criteria: str
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     def __post_init__(self) -> None:
         if not self.hypothesis.strip():
