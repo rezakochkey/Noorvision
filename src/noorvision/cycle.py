@@ -7,6 +7,7 @@ from .agent import AgentStep, NoorvisionAgent
 from .experiment import Experiment
 from .experiment_runner import run_experiment
 from .learning import remember_result
+from .trace import CycleTrace
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,12 +16,15 @@ class CycleResult:
 
     step: AgentStep
     action_result: ActionResult
+    trace: CycleTrace
 
 
 def run_cycle(agent: NoorvisionAgent) -> CycleResult:
-    """Observe, execute a local action, and close an experiment-learning loop."""
+    """Observe, execute a local action, learn from experiments, and trace it."""
     step = agent.observe()
     action_result = execute_action(agent.memory_store, step.decision.action)
+    experiment_executed = False
+    result_memory_created = False
 
     if step.decision.action == "run_next_experiment":
         experiment = Experiment(
@@ -30,5 +34,13 @@ def run_cycle(agent: NoorvisionAgent) -> CycleResult:
         result = run_experiment(experiment)
         memory = remember_result(experiment, result)
         agent.memory_store.add(memory)
+        experiment_executed = True
+        result_memory_created = True
 
-    return CycleResult(step=step, action_result=action_result)
+    trace = CycleTrace.from_step(
+        step,
+        action_result,
+        experiment_executed=experiment_executed,
+        result_memory_created=result_memory_created,
+    )
+    return CycleResult(step=step, action_result=action_result, trace=trace)
