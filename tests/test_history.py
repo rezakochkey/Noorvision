@@ -5,7 +5,7 @@ from noorvision.snapshot import MemorySnapshot
 
 
 def make_report(cycles: int) -> RunReport:
-    summary = RunSummary(cycles=cycles, traces=())
+    summary = RunSummary(cycles=cycles, experiments=0, result_memories=0, traces=())
     snapshot = MemorySnapshot(total=cycles, by_kind=())
     return RunReport(summary=summary, memory_before=snapshot, memory_after=snapshot)
 
