@@ -4,18 +4,17 @@ from pathlib import Path
 
 from .agent import NoorvisionAgent
 from .history_service import HistoryService
-from .history_runner import run_and_record
-from .history import RunHistory
 from .report import RunReport
+from .report_runner import run_and_report
 
 
 def run_and_persist(
     agent: NoorvisionAgent,
     count: int,
     path: str | Path,
-) -> tuple[RunReport, RunHistory]:
-    """Run Noorvision, record through HistoryService, and return the history."""
+) -> tuple[RunReport, HistoryService]:
+    """Run Noorvision, record the report through HistoryService, and persist it."""
     service = HistoryService(path)
-    report = run_and_record(agent, count, service.history)
+    report = run_and_report(agent, count)
     service.record(report)
     return report, service.history
