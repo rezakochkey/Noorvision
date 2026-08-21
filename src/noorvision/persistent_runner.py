@@ -1,20 +1,18 @@
-"""Run Noorvision through the central history service."""
+"""Compatibility wrapper for running Noorvision with persisted history."""
 
 from pathlib import Path
 
 from .agent import NoorvisionAgent
 from .history_service import HistoryService
 from .report import RunReport
-from .report_runner import run_and_report
 
 
 def run_and_persist(
     agent: NoorvisionAgent,
     count: int,
     path: str | Path,
-) -> tuple[RunReport, HistoryService]:
-    """Run Noorvision, record the report through HistoryService, and persist it."""
+) -> tuple[RunReport, object]:
+    """Run through HistoryService while preserving the legacy return contract."""
     service = HistoryService(path)
-    report = run_and_report(agent, count)
-    service.record(report)
+    report = service.run(agent, count)
     return report, service.history
