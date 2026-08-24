@@ -1,25 +1,39 @@
-from noorvision.agent import NoorvisionAgent
-from noorvision.cycle import run_cycle
 from noorvision.history import RunHistory
-from noorvision.history_service import HistoryService
 from noorvision.persistence import load_history, save_history
 from noorvision.query import highest_cycle_run, latest_reports, reports_with_experiments
+from noorvision.report import RunReport
+from noorvision.runner import RunSummary
+from noorvision.snapshot import MemorySnapshot
+from noorvision.trace import CycleTrace
+
+
+def _report(*, cycle: int, experiment: bool) -> RunReport:
+    trace = CycleTrace(
+        action="run_next_experiment" if experiment else "record_decision",
+        memory_count_before=cycle - 1,
+        action_memory_created=True,
+        experiment_executed=experiment,
+        result_memory_created=experiment,
+    )
+    summary = RunSummary(
+        cycles=cycle,
+        experiments=int(experiment),
+        result_memories=int(experiment),
+        traces=(trace,),
+    )
+    snapshot = MemorySnapshot(total=cycle, by_kind=())
+    return RunReport(summary=summary, memory_before=snapshot, memory_after=snapshot)
 
 
 def test_persistence_round_trip_preserves_query_contract(tmp_path) -> None:
     path = tmp_path / "history.json"
-    service = HistoryService(path)
-    agent = NoorvisionAgent()
+    history = RunHistory()
+    first = _report(cycle=1, experiment=True)
+    second = _report(cycle=2, experiment=False)
+    history.add(first)
+    history.add(second)
 
-    first = service.run(agent, 1)
-
-    experiment_agent = NoorvisionAgent()
-    experiment_agent.capture_context("Noorvision", "Experiment context")
-    experiment_result = run_cycle(experiment_agent)
-    assert experiment_result.trace.experiment_executed is True
-    second = service.run(agent, 2)
-    service.history.records[-1] = second
-
+    save_history(history, path)
     loaded = load_history(path)
 
     assert len(loaded) == 2
