@@ -1,4 +1,5 @@
-from noorvision.evaluator import EvaluationCase, evaluate_case
+from noorvision.evaluation_models import EvaluationCase
+from noorvision.evaluator import evaluate_case
 
 
 def test_evaluator_returns_pass_for_exact_match():
