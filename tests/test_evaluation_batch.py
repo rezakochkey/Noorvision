@@ -11,7 +11,7 @@ def test_batch_runs_multiple_tasks_and_aggregates_report():
 
     answers = {"2 + 2": 4, "3 + 3": 6, "4 + 4": 5}
 
-    report = run_batch(tasks, lambda value: answers[value])
+    report = run_batch(tasks, lambda task: answers[task.input])
 
     assert report.total == 3
     assert report.passed == 2
@@ -20,7 +20,7 @@ def test_batch_runs_multiple_tasks_and_aggregates_report():
 
 
 def test_empty_batch_produces_empty_report():
-    report = run_batch([], lambda value: value)
+    report = run_batch([], lambda task: task.input)
 
     assert report.total == 0
     assert report.passed == 0
