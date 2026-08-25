@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any, Callable
 
 from .evaluation_bridge import case_from_task
@@ -22,4 +23,5 @@ def run_evaluation(task: EvaluationTask, executor: Executor) -> EvaluationOutcom
         actual_output=executor(task),
     )
     case = case_from_task(task, record.actual_output)
-    return evaluate_case(case)
+    outcome = evaluate_case(case)
+    return replace(outcome, execution=record)
