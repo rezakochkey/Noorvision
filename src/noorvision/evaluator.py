@@ -2,27 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Callable
 
-
-@dataclass(frozen=True, slots=True)
-class EvaluationOutcome:
-    """The outcome of evaluating one case."""
-
-    case_id: str
-    passed: bool
-    score: float
-    reason: str
-
-
-@dataclass(frozen=True, slots=True)
-class EvaluationCase:
-    """A deterministic evaluation case."""
-
-    case_id: str
-    expected: Any
-    actual: Any
+from .evaluation_models import EvaluationCase, EvaluationOutcome
 
 
 Evaluator = Callable[[EvaluationCase], EvaluationOutcome]
