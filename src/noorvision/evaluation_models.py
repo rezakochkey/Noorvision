@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .execution_record import ExecutionRecord
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,3 +26,4 @@ class EvaluationOutcome:
     passed: bool
     score: float
     reason: str
+    execution: "ExecutionRecord | None" = None
