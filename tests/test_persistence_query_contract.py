@@ -40,7 +40,7 @@ def test_persistence_round_trip_preserves_query_contract(tmp_path) -> None:
     assert loaded.latest() is not None
     assert latest_reports(loaded, 2) == [second, first]
     assert reports_with_experiments(loaded) == [first]
-    assert highest_cycle_run(loaded) is second
+    assert highest_cycle_run(loaded) == second
 
     save_history(loaded, path)
     reloaded = load_history(path)
