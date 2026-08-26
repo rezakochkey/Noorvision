@@ -11,6 +11,7 @@ def test_pipeline_result_exposes_execution_record():
 
     result = run_evaluation(task, lambda received: 10)
 
+    assert result.execution is not None
     assert result.execution.task_id == task.task_id
     assert result.execution.input == task.input
     assert result.execution.actual_output == 10
