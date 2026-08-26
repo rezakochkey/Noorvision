@@ -10,7 +10,11 @@ def test_batch_preserves_distinct_execution_records():
     ]
 
     answers = {"2 + 2": 4, "3 + 3": 6, "4 + 4": 8}
-    report = run_batch(tasks, lambda value: answers[value])
+
+    def executor(task: EvaluationTask) -> int:
+        return answers[task.input]
+
+    report = run_batch(tasks, executor)
 
     assert report.total == 3
     assert report.passed == 3
