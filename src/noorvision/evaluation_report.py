@@ -15,10 +15,11 @@ class EvaluationReport:
     passed: int
     failed: int
     pass_rate: float
+    outcomes: tuple[EvaluationOutcome, ...] = ()
 
 
 def build_report(outcomes: list[EvaluationOutcome]) -> EvaluationReport:
-    """Build a report without allowing score to redefine pass/fail status."""
+    """Build a report while retaining the evaluated outcomes in order."""
     total = len(outcomes)
     passed = sum(outcome.passed for outcome in outcomes)
     failed = total - passed
@@ -28,4 +29,5 @@ def build_report(outcomes: list[EvaluationOutcome]) -> EvaluationReport:
         passed=passed,
         failed=failed,
         pass_rate=pass_rate,
+        outcomes=tuple(outcomes),
     )
