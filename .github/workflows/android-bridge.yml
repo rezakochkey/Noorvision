@@ -1,0 +1,33 @@
+name: NOORVISION Android Bridge
+
+on:
+  push:
+    branches: [ android-bridge-secure-final6 ]
+  pull_request:
+    branches: [ android-bridge-secure-final6 ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-bridge
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Make Gradle executable
+        run: chmod +x gradlew
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: noorvision-bridge-debug
+          path: android-bridge/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
