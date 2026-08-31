@@ -1,0 +1,1 @@
+Gradle wrapper configuration is maintained with the Android build tooling. This directory is reserved for the wrapper metadata required by CI.
