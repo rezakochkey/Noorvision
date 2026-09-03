@@ -1,5 +1,5 @@
-from typing import Dict, Any
-from noorvision.evaluation_models import EvaluationOutcome, ExecutionRecord
+from noorvision.evaluation_models import EvaluationOutcome
+from noorvision.execution_record import ExecutionRecord
 
 
 class RealWorldLogicMetric:
@@ -16,10 +16,10 @@ class RealWorldLogicMetric:
         ارزیابی رکورد اجرا بر اساس وجود کلمات کلیدی تحلیلی در پاسخ مدل.
         """
         output_text = str(record.actual_output).lower()
-        
+
         # بررسی اینکه آیا مدل متوجه تناقض/باگ شده است یا خیر
         matched_keywords = [kw for kw in expected_keywords if kw.lower() in output_text]
-        
+
         # محاسبه نمره: نسبت کلمات کلیدی تحلیلیِ کشف‌شده
         score = len(matched_keywords) / len(expected_keywords) if expected_keywords else 0.0
         passed = score >= 0.5  # اگر حداقل ۵۰٪ نکات تحلیلی را کشف کند قبول می‌شود
