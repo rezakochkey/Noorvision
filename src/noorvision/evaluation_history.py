@@ -44,5 +44,14 @@ class EvaluationHistory:
                     return outcome
         return None
 
+    def find_report(self, execution_id: str) -> EvaluationReport | None:
+        """Return the report containing the given execution id, if present."""
+        for report in self.reports:
+            for outcome in report.outcomes:
+                execution = outcome.execution
+                if execution is not None and execution.execution_id == execution_id:
+                    return report
+        return None
+
     def __len__(self) -> int:
         return len(self.reports)
