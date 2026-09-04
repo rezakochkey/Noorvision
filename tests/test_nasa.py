@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -21,6 +22,11 @@ class FakeResponse:
 
     def __iter__(self):
         return iter(())
+
+
+class MalformedResponse(FakeResponse):
+    def read(self):
+        return b"{not-valid-json"
 
 
 def test_client_requires_api_key(monkeypatch):
@@ -77,3 +83,88 @@ def test_get_apod_never_requires_live_nasa(monkeypatch):
     # Constructor validation is local and must remain usable without network access.
     client = nasa.NASAClient(api_key="test-secret")
     assert client._api_key == "test-secret"
+
+
+def test_get_apod_maps_http_429_to_nasa_api_error(monkeypatch):
+    monkeypatch.setattr(
+        nasa,
+        "urlopen",
+        lambda request, timeout: (_ for _ in ()).throw(
+            HTTPError(request.full_url, 429, "rate limited", {}, None)
+        ),
+    )
+
+    with pytest.raises(nasa.NASAAPIError, match="NASA APOD request failed") as exc_info:
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+    assert "test-secret" not in str(exc_info.value)
+
+
+def test_get_apod_maps_http_5xx_to_nasa_api_error(monkeypatch):
+    monkeypatch.setattr(
+        nasa,
+        "urlopen",
+        lambda request, timeout: (_ for _ in ()).throw(
+            HTTPError(request.full_url, 503, "service unavailable", {}, None)
+        ),
+    )
+
+    with pytest.raises(nasa.NASAAPIError, match="NASA APOD request failed"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+
+def test_get_apod_maps_network_failure_to_nasa_api_error(monkeypatch):
+    monkeypatch.setattr(
+        nasa,
+        "urlopen",
+        lambda request, timeout: (_ for _ in ()).throw(URLError("connection refused")),
+    )
+
+    with pytest.raises(nasa.NASAAPIError, match="NASA APOD request failed"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+
+def test_get_apod_maps_timeout_to_nasa_api_error(monkeypatch):
+    monkeypatch.setattr(
+        nasa,
+        "urlopen",
+        lambda request, timeout: (_ for _ in ()).throw(TimeoutError("timed out")),
+    )
+
+    with pytest.raises(nasa.NASAAPIError, match="NASA APOD request failed"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+
+def test_get_apod_maps_malformed_json_to_nasa_api_error(monkeypatch):
+    monkeypatch.setattr(nasa, "urlopen", lambda request, timeout: MalformedResponse(None))
+
+    with pytest.raises(nasa.NASAAPIError, match="NASA APOD request failed"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+
+def test_get_apod_rejects_missing_required_fields(monkeypatch):
+    payload = {
+        "date": "2026-09-04",
+        "title": "Incomplete Fixture",
+        "media_type": "image",
+        "url": "https://example.test/apod.jpg",
+    }
+    monkeypatch.setattr(nasa, "urlopen", lambda request, timeout: FakeResponse(payload))
+
+    with pytest.raises(nasa.NASAAPIError, match="missing required fields"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
+
+
+def test_get_apod_rejects_non_string_hdurl(monkeypatch):
+    payload = {
+        "date": "2026-09-04",
+        "title": "Bad HD Fixture",
+        "explanation": "Invalid hdurl type.",
+        "media_type": "image",
+        "url": "https://example.test/apod.jpg",
+        "hdurl": 123,
+    }
+    monkeypatch.setattr(nasa, "urlopen", lambda request, timeout: FakeResponse(payload))
+
+    with pytest.raises(nasa.NASAAPIError, match="hdurl must be a string"):
+        nasa.NASAClient(api_key="test-secret").get_apod()
